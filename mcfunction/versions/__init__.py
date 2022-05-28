@@ -11,8 +11,7 @@ from ..util import tokenize
 
 
 class MinecraftVersion:
-    def __init__(self, version: str, module: str,
-                 removed_commands: t.Set[str] = None):
+    def __init__(self, version: str, module: str, removed_commands: t.Set[str] = None):
         self.version = version
         self.module = module
         self.commands = []
@@ -26,16 +25,20 @@ class MinecraftVersion:
         spec = importlib.util.find_spec(self.module)
         origin = Path(spec.origin).parent
         for file in origin.iterdir():
-            if (file.name == '__init__.py' or file.name.startswith('_')
-                    or file.suffix != '.py' or not file.is_file()):
+            if (
+                file.name == "__init__.py"
+                or file.name.startswith("_")
+                or file.suffix != ".py"
+                or not file.is_file()
+            ):
                 continue
-            module = importlib.import_module(f'{self.module}.{file.stem}')
+            module = importlib.import_module(f"{self.module}.{file.stem}")
             try:
                 command = getattr(module, file.stem)
             except AttributeError:
                 # the command name may, for some reasons, not be a valid python
                 #   identifier (reserved keywords, special characters, ...)
-                command = getattr(module, 'command')
+                command = getattr(module, "command")
 
             self.add_command(command)
 
@@ -71,9 +74,14 @@ class Parser(t.NamedTuple):
 class Command:
     variations: t.List[t.Tuple[Parser, ...]]
 
-    def __init__(self, name: str, aliases: t.List[str] = None, *,
-                 parsed: t.Callable[..., ParsedCommand],
-                 oplevel: int = 2):
+    def __init__(
+        self,
+        name: str,
+        aliases: t.List[str] = None,
+        *,
+        parsed: t.Callable[..., ParsedCommand],
+        oplevel: int = 2,
+    ):
         self.name = name
         if aliases is None:
             aliases = []
@@ -94,8 +102,8 @@ class Command:
         exception = None
         exception_dept = -1
         for variation in self.variations:
-            parts = tokenize(command, ' ')
-            result = {'command': next(parts)}
+            parts = tokenize(command, " ")
+            result = {"command": next(parts)}
             for no, parser in enumerate(variation):
                 try:
                     node = parser.parser.parse(parts)
@@ -106,7 +114,7 @@ class Command:
                     break
                 except StopIteration:
                     if no > exception_dept:
-                        exception = ParserException('too few arguments')
+                        exception = ParserException("too few arguments")
                         exception_dept = no
                     break
                 else:
@@ -121,28 +129,29 @@ class Command:
                     return self.parsed(**result)
                 else:
                     if len(variation) > exception_dept:
-                        exception = ParserException('invalid syntax')
+                        exception = ParserException("invalid syntax")
                         exception_dept = len(variation)
                     continue
 
         if exception is None:  # pragma: no cover
-            raise ParserException('should not happen')
+            raise ParserException("should not happen")
         raise exception  # pragma: no cover
 
 
 VERSIONS = [
-    MinecraftVersion('1.16', 'mcfunction.versions.mc_1_16'),
-    MinecraftVersion('1.15', 'mcfunction.versions.mc_1_15'),
-    MinecraftVersion('1.14', 'mcfunction.versions.mc_1_14'),
-    MinecraftVersion('1.13', 'mcfunction.versions.mc_1_13',
-                     removed_commands={'blockdata', 'entitydata', 'stats',
-                                       'toggledownfall'}),
-    MinecraftVersion('1.12', 'mcfunction.versions.mc_1_12',
-                     removed_commands={'achievement'}),
-    MinecraftVersion('1.11', 'mcfunction.versions.mc_1_11'),
-    MinecraftVersion('1.10', 'mcfunction.versions.mc_1_10'),
-    MinecraftVersion('1.9', 'mcfunction.versions.mc_1_9'),
-    MinecraftVersion('1.8', 'mcfunction.versions.mc_1_8'),
+    # MinecraftVersion('1.16', 'mcfunction.versions.mc_1_16'),
+    # MinecraftVersion('1.15', 'mcfunction.versions.mc_1_15'),
+    # MinecraftVersion('1.14', 'mcfunction.versions.mc_1_14'),
+    # MinecraftVersion('1.13', 'mcfunction.versions.mc_1_13',
+    #                  removed_commands={'blockdata', 'entitydata', 'stats',
+    #                                    'toggledownfall'}),
+    # MinecraftVersion('1.12', 'mcfunction.versions.mc_1_12',
+    #                  removed_commands={'achievement'}),
+    # MinecraftVersion('1.11', 'mcfunction.versions.mc_1_11'),
+    # MinecraftVersion('1.10', 'mcfunction.versions.mc_1_10'),
+    # MinecraftVersion('1.9', 'mcfunction.versions.mc_1_9'),
+    # MinecraftVersion('1.8', 'mcfunction.versions.mc_1_8'),
+    MinecraftVersion("1.19", "mcfunction.versions.mcbe_1_19")
 ]
 
 
