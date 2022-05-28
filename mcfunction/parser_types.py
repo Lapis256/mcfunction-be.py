@@ -240,13 +240,15 @@ class Particle(ParserType):
 
 
 class Position(ParserType):
-    position = re.compile("([~^](?:\d*)?)" + "([~^](?:\d*)?)?" * 2)
+    position = re.compile("([~^](?:-?\d*)?)" + "([~^](?:-?\d*)?)?" * 2)
 
     def split_coordinates(self, parts: t.Iterator[str]) -> t.Iterator[str]:
         coordinates: list[str] = []
         while True:
             arg = get(parts)
             match = self.position.fullmatch(arg)
+            if match is None:
+                raise ParserException(f"invalid position: {arg!r}")
 
             coordinates.extend(filter(None, match.groups()))
 
